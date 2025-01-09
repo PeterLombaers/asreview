@@ -212,6 +212,8 @@ setup(
             "logistic = asreview.models.classifiers:LogisticClassifier",
             "lstm-base = asreview.models.classifiers:LSTMBaseClassifier",
             "lstm-pool = asreview.models.classifiers:LSTMPoolClassifier",
+            "ratio-nb = asreview.models.classifiers.ratio_nb:RatioNaiveBayesClassifier",
+            "ratio-logistic = asreview.models.classifiers.ratio_logistic:RatioLogisticClassifier",
         ],
         "asreview.models.feature_extraction": [
             "doc2vec = asreview.models.feature_extraction:Doc2Vec",
