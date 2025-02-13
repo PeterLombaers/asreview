@@ -201,3 +201,13 @@ class DataStore:
                 con,
                 dtype=self.pandas_dtype_mapping,
             )
+
+    def search(self, query, n=10):
+        with self.Session() as session:
+            record_ids = session.scalars(
+                text("SELECT rowid FROM record_fts WHERE record_fts MATCH :query"),
+                {"query": query},
+            ).all()
+            return session.query(self.record_cls).where(
+                self.record_cls.record_id.in_(record_ids)
+            ).all()

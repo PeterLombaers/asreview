@@ -1,8 +1,10 @@
 from typing import Optional
 
 import pandas as pd
+from sqlalchemy import DDL
 from sqlalchemy import ForeignKey
 from sqlalchemy import UniqueConstraint
+from sqlalchemy import event
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import MappedAsDataclass
@@ -141,3 +143,32 @@ class Record(Base):
                 f"included should be one of 0, 1, or None. Not '{included}'"
             )
         return included
+
+
+# class RecordFTS(Base):
+#     __tablename__ = "record_fts"
+
+#     title: Mapped[str] = mapped_column(default="")
+#     abstract: Mapped[str] = mapped_column(default="")
+
+
+create_fts_table = DDL("""
+    CREATE VIRTUAL TABLE IF NOT EXISTS record_fts USING fts5(title, abstract);
+""")
+
+event.listen(Base.metadata, "after_create", create_fts_table)
+
+insert_trigger = DDL("""
+    CREATE TRIGGER IF NOT EXISTS record_ai AFTER INSERT ON record BEGIN
+        INSERT INTO record_fts(rowid, title, abstract) VALUES (new.record_id, new.title, new.abstract);
+    END;
+""")
+
+delete_trigger = DDL("""
+    CREATE TRIGGER IF NOT EXISTS record_ad AFTER DELETE ON record BEGIN
+        DELETE FROM record_fts WHERE rowid = old.record_id;
+    END;
+""")
+
+event.listen(Base.metadata, "after_create", insert_trigger)
+event.listen(Base.metadata, "after_create", delete_trigger)
